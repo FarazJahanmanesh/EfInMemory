@@ -19,7 +19,7 @@ public class ProductController : ControllerBase
     public async Task <IActionResult> CreateProduct([FromBody] ProductDto dto)
     {
         var result = await _productRepository.CreateProduct(dto);
-        return Ok(result.Adapt<ProductDto>());
+        return Ok(result);
     }
 
 

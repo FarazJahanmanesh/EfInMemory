@@ -12,7 +12,36 @@ public class ProductRepository: IProductRepository
     {
         _dbContext = dbContext;
     }
-    public async Task<Product>CreateProduct(ProductDto productDto)
+    public async Task<ProductDto>DeleteProduct(int id)
+    {
+        var product = await _dbContext.Products.FindAsync(id);
+        if (product != null)
+        {
+            _dbContext.Products.ExecuteDeleteAsync();
+            _dbContext.Entry(product).State = EntityState.Modified;
+            await SaveChangesAsync();
+        }
+        return await Task.FromResult(product.Adapt<ProductDto>());
+    }
+    public async Task<ProductDto>UpdateProduct(Product productdto)
+    {
+        var product = await _dbContext.Products.FindAsync(productdto.Id);
+        if (product != null)
+        {
+            product.Name = productdto.Name;
+            product.Description = productdto.Description;
+
+            _dbContext.Entry(product).State = EntityState.Modified;
+            await SaveChangesAsync();
+        }
+        return await Task.FromResult(product.Adapt<ProductDto>());
+    }
+    public async Task<ProductDto> GetProductById(int id)
+    {
+        var product = await _dbContext.Products.AsNoTracking().FirstOrDefaultAsync(d=>d.Id == id);
+        return await Task.FromResult(product.Adapt<ProductDto>());
+    }
+    public async Task<ProductDto> CreateProduct(ProductDto productDto)
     {
         var product = new Product
         {
@@ -20,11 +49,17 @@ public class ProductRepository: IProductRepository
             Description = productDto.Description
         };
         _dbContext.Products.Add(product);
-        _dbContext.SaveChanges();
-        return await Task.FromResult(product);
+        await SaveChangesAsync();
+
+        return await Task.FromResult(product.Adapt<ProductDto>());
     }
     public async Task<List<ProductDto>> GetAllProduct()
     {
-        return await _dbContext.Products.AsNoTracking().ProjectToType<ProductDto>().ToListAsync(); 
+        var products =  await _dbContext.Products.AsNoTracking().ProjectToType<ProductDto>().ToListAsync();
+        return await Task.FromResult(products);
+    }
+    private async Task SaveChangesAsync()
+    {
+        await _dbContext.SaveChangesAsync();
     }
 }
