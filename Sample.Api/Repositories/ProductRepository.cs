@@ -17,8 +17,7 @@ public class ProductRepository: IProductRepository
         var product = await _dbContext.Products.FindAsync(id);
         if (product != null)
         {
-            _dbContext.Products.ExecuteDeleteAsync();
-            _dbContext.Entry(product).State = EntityState.Modified;
+            _dbContext.Products.Remove(product);
             await SaveChangesAsync();
         }
         return await Task.FromResult(product.Adapt<ProductDto>());
